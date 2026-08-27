@@ -4,6 +4,12 @@ Black-Scholes formula for option prices.
 
 from scipy.stats import norm
 import math
+#For use in different functions from B-S model
+def d1(S, K,T,r, sigma):
+    numerator = math.log(S/K) + (r + (sigma**2)/2)*T
+    denominator = sigma * math.sqrt(T)
+
+    return numerator/denominator
 
 def black_scholes(S, K, T, r, sigma):
     '''
