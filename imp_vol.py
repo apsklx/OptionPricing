@@ -6,26 +6,33 @@ Implied volatility
 
 from black_scholes import black_scholes
 from greeks import vega
+import numpy as np
 import math
 
 eps = 0.00001 #tolerance
-sigma_guess = 0.3 #volatility guess
-theoretical_price = 126.85955254585951
 
-def f(S,K,T,r,sigma, price):
-    return black_scholes(S,K,T,r,sigma) - price
+def f(S,K,T,r, market_price, sigma):
+    return black_scholes(S,K,T,r,sigma) - market_price
 
-def nr_volatility(S, K, T, r, sigma_guess):
-    if abs(f(S, K, T, r, sigma_guess, theoretical_price)) < eps:
-        return sigma_guess
-    else:
-        v = vega(S,K,T,r, sigma_guess)
-        if v == 0:
-            raise ValueError("Cannot divide by zero!")
-        diff = f(S,K, T, r, sigma_guess, theoretical_price)
-        sigma_guess = sigma_guess - diff/v
-        return nr_volatility(S,K,T,r,sigma_guess)
+def nr_volatility(S, K, T, r, market_price, sigma_guess=0.3, max_iter=100, eps=1e-5):
+    sigma = sigma_guess
     
-S, K, T, r = 2500, 2500, 1, 0.05
-
-print(nr_volatility(S,K,T,r, sigma_guess))
+    for _ in range(max_iter):
+        # f(S,K,T,r,market_price,sigma) = black_scholes(...) - market_price
+        price_diff = f(S, K, T, r, market_price, sigma)
+        
+        if abs(price_diff) < eps:
+            return sigma
+            
+        v = vega(S, K, T, r, sigma)
+        
+        if v == 0:
+            return np.nan  # Avoid division by zero; return NaN for this point on the surface
+            
+        sigma = sigma - (price_diff / v)
+        
+        # Volatility cannot be negative. If Newton-Raphson overshoots, reset to a small positive number
+        if sigma <= 0:
+            sigma = 1e-5 
+            
+    return np.nan  # Did not converge within max_iter
