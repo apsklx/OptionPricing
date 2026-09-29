@@ -29,4 +29,6 @@ def black_scholes(S, K, T, r, sigma):
 
     return S * norm.cdf(d1) - K * math.exp(-r * T)*norm.cdf(d2)
 
+S, K, T, r, sigma = 100, 95, 1, 0.05, 0.2
+print(black_scholes(S,K,T,r,sigma))
 
